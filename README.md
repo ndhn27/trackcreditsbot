@@ -2,8 +2,6 @@
 
 > A Telegram bot that looks up song credits, lyrics, and streaming links — just send a track name or paste a Spotify / YouTube / Apple Music link.
 
-**🤖 Live demo: [@TrackCredits_bot](https://t.me/TrackCredits_bot)** — try it before you deploy.
-
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
 [![python-telegram-bot](https://img.shields.io/badge/python--telegram--bot-22.7-blue)](https://github.com/python-telegram-bot/python-telegram-bot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-asyncpg-336791?logo=postgresql)](https://github.com/MagicStack/asyncpg)
