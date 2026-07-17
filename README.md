@@ -226,7 +226,7 @@ MIT — see [LICENSE](LICENSE).
 
 ## 👤 Author
 
-**ndhn27** — lindaaov10@gmail.com
+**ndhn27**
 
 ---
 
