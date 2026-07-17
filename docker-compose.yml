@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Override DATABASE_URL so it points to the local postgres container.
+      # All other vars (TOKEN, GENIUS_TOKEN, ADMIN_CHAT_ID) come from .env.
+      DATABASE_URL: postgresql://tcbot:tcbot@postgres:5432/tcbot
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tcbot
+      POSTGRES_PASSWORD: tcbot
+      POSTGRES_DB: tcbot
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tcbot -d tcbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
