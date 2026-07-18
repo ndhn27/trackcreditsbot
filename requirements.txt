@@ -36,7 +36,7 @@ lyricsgenius==3.11.0
 # Stripe Checkout + webhook verification (only needed if PAYMENT_PROVIDER=stripe)
 stripe==15.3.1
 
-pydantic>=2.0.0
+pydantic>=2.13.4
 
 # ── Testing ──────────────────────────────────────────────────────────────────
 pytest==8.3.5
