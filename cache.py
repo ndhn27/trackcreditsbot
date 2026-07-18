@@ -167,7 +167,7 @@ async def delete_song_cache(key: str) -> None:
 async def cache_lookup(key: str) -> Tuple[Optional[Dict], bool]:
     """
     Lookup track in caches (memory → database).
-    
+
     Returns: (cache_data, is_stale)
     """
     hit = await mem_cache_get(key)
@@ -292,20 +292,20 @@ _RATE_LOCK = asyncio.Lock()
 async def check_rate_limit(user_id: int, chat_id: Optional[int] = None) -> bool:
     """
     Check if request is allowed (async version).
-    
+
     Return True if allowed, False if rate-limited.
-    
+
     Uses asyncio.Lock to protect shared state without blocking event loop.
-    
+
     Memory-leak fix: after expiring old entries from a bucket, if the deque
     becomes empty it is deleted from the dict.  defaultdict recreates a fresh
     deque on the next access, so the behaviour is identical — but inactive
     users no longer leave an empty deque in RAM forever.
-    
+
     Args:
         user_id: Telegram user ID
         chat_id: Optional chat ID (for group rate limiting)
-        
+
     Returns:
         True if request is allowed, False if rate-limited
     """

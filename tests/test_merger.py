@@ -1,7 +1,6 @@
 """Tests for merger.py — pure data transformation, no I/O."""
 from __future__ import annotations
 
-import pytest
 from merger import merge_track_metadata, parse_youtube_credits, pick_best_lyrics
 
 

@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import time
 import logging
-from typing import Optional
 
 from db import db_execute
 

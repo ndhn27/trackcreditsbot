@@ -29,7 +29,7 @@ from handlers import (
     start, cmd_lang, cmd_help, cmd_cancel, cmd_top, cmd_daily, cmd_credits,
     cmd_terms, cmd_privacy, cmd_buy, cmd_confirm_payment,
     cmd_admin, cmd_ban, cmd_unban, cmd_broadcast, cmd_giftcredits, cmd_subs, cmd_export,
-    handle_input, button_handler, process_sub_handler, handle_inline_query,
+    button_handler, process_sub_handler, handle_inline_query,
 )
 
 

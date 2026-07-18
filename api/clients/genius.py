@@ -12,7 +12,7 @@ from __future__ import annotations
 import asyncio
 import difflib
 import re
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from urllib.parse import quote_plus
 
 from config import GENIUS_TOKEN, logger
@@ -85,7 +85,7 @@ class GeniusClient:
     async def search(self, query: str, limit: int = 10) -> List[Dict]:
         """
         Search for songs on Genius.
-        
+
         Returns list of tracks with basic info (title, artist, thumbnail, etc.)
         """
         if not self._token:
@@ -101,7 +101,7 @@ class GeniusClient:
             )
             if status != 200 or not payload:
                 return []
-            
+
             hits = payload.get("response", {}).get("hits", [])
             results = []
             for hit in hits[:limit]:
@@ -123,7 +123,7 @@ class GeniusClient:
     async def fetch_song_data(self, title: str, artist: str) -> Optional[Dict]:
         """
         Fetch full song data including credits and lyrics.
-        
+
         Returns dict with keys:
         - credits: dict of all song credits
         - lyrics: full lyrics text (if available)
@@ -136,7 +136,7 @@ class GeniusClient:
 
         headers = {"Authorization": f"Bearer {self._token}"}
         search_query = f"{title} {artist}".strip()
-        
+
         try:
             # Search for the song
             search_status, search_payload = await self._session_manager.fetch_json(
@@ -164,7 +164,7 @@ class GeniusClient:
                 )
                 return None
             song_id = best_result["id"]
-            
+
             # Fetch full details
             detail_status, detail_payload = await self._session_manager.fetch_json(
                 f"https://api.genius.com/songs/{song_id}?text_format=plain",
@@ -222,7 +222,7 @@ class GeniusClient:
         # Fetch lyrics
         lyrics = await self._fetch_lyrics(title, artist)
         metric_inc("genius_ok")
-        
+
         return {
             "credits": credits,
             "lyrics": lyrics,

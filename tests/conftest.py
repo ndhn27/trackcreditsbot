@@ -4,7 +4,6 @@ Shared fixtures and mocks for the test suite.
 from __future__ import annotations
 
 import sys
-from collections import defaultdict, deque
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest

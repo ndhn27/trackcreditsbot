@@ -15,7 +15,6 @@ bot_data keys set by this module:
 from __future__ import annotations
 
 from app_context import AppContext, make_default_api, make_default_db
-import app_context as _app_context_module
 from track_manager import TrackManager
 from config import logger
 import db as db_module

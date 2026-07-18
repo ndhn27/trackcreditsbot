@@ -83,7 +83,6 @@ def register_admin_extended(registry: CallbackRegistry) -> None:
         escape_html,
         bans_list as _bans_list,
         submissions_get_pending_page as _subs_page,
-        submissions_count_by_status,
     )
 
     @registry.register("admin_subs")

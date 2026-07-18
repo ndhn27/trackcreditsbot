@@ -34,7 +34,7 @@ class CircuitPermit:
 class AsyncCircuitBreaker:
     """
     Circuit breaker pattern for external APIs.
-    
+
     Prevents cascading failures by cutting off requests when an API is failing.
     States: CLOSED (normal) → OPEN (failing) → HALF_OPEN (recovery) → CLOSED
     """
@@ -115,7 +115,7 @@ class AsyncCircuitBreaker:
 class ApiSessionManager:
     """
     Manages aiohttp ClientSession and circuit breakers for multiple APIs.
-    
+
     Responsible for:
     - Creating and managing a single ClientSession
     - Managing circuit breakers per API host
@@ -179,7 +179,7 @@ class ApiSessionManager:
     ) -> tuple[int, str]:
         """
         Fetch plain text response with circuit breaker protection.
-        
+
         Returns: (status_code, text)
         """
         circuit = self._get_circuit_for_url(url)
@@ -231,7 +231,7 @@ class ApiSessionManager:
     ) -> tuple[int, Any]:
         """
         Fetch JSON response with circuit breaker protection.
-        
+
         Returns: (status_code, parsed_json)
         """
         circuit = self._get_circuit_for_url(url)

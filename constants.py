@@ -134,7 +134,7 @@ class Limits:
     MAX_SUBMIT_SOURCE_LEN: int = 1000
     ADMIN_PREVIEW_LEN: int = 3500
     DB_BLOB_MAX_LEN: int = 120_000
-    
+
     # --- Inline Query Limits ---
     INLINE_SEARCH_LIMIT: int = 5
     INLINE_CACHE_EMPTY: int = 10

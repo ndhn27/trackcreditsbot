@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import time
 
-import pytest
 
 import cache as cache_mod
 from cache import mem_cache_get, mem_cache_set, mem_cache_pop, check_rate_limit

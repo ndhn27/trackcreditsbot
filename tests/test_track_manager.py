@@ -1,9 +1,8 @@
 """Tests for TrackManager — core resolution logic."""
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-import pytest
 
 from track_manager import TrackManager, TrackResolution, TrackAmbiguous, TrackNotFound
 

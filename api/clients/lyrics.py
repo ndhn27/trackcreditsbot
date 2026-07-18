@@ -27,7 +27,7 @@ class LyricsClient:
     async def fetch(self, title: str, artist: str) -> Optional[str]:
         """
         Fetch lyrics from auto-fetch APIs.
-        
+
         Tries lrclib.net first, then lyrics.ovh.
         Returns plain text lyrics or None.
         """

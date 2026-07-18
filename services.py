@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 import yt_dlp
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -111,7 +111,7 @@ def render_credits(
 
     if db_credits and db_credits.strip():
         lines.append(f"\n{t_lang('credits_community_section', lang)}")
-        
+
         # Filter db_credits - only include lines with colons
         filtered_lines = [line.strip() for line in db_credits.split('\n') if ':' in line and line.strip()]
         if filtered_lines:

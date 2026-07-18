@@ -1,7 +1,6 @@
 """Tests for services.py — pure rendering helpers."""
 from __future__ import annotations
 
-import pytest
 from services import build_main_text, truncate_text_naturally, render_credits
 
 

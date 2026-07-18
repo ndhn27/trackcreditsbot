@@ -6,7 +6,7 @@ Converts any music URL to links on all major platforms.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 from urllib.parse import urlencode
 
 from config import logger
@@ -24,7 +24,7 @@ class OdesliClient:
     async def fetch_links(self, url: str) -> Optional[Dict]:
         """
         Fetch streaming links for a track across all platforms.
-        
+
         Returns dict with:
         - linksByPlatform: dict of platform → URL mappings
         - entityUniqueId: unique track identifier

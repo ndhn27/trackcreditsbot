@@ -9,7 +9,7 @@ Handles:
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 __all__ = [
     "merge_track_metadata",
@@ -26,19 +26,19 @@ def merge_track_metadata(
 ) -> Dict:
     """
     Merge track metadata from multiple sources.
-    
+
     Priority:
     - Title/Artist: Genius > YouTube
     - Album: Genius credits
     - Label: MusicBrainz > Genius
     - ISRC: MusicBrainz
     - Thumbnail: YouTube
-    
+
     Args:
         genius_data: From Genius API
         mb_data: From MusicBrainz API
         yt_data: From YouTube search
-        
+
     Returns:
         Merged metadata dict
     """
@@ -61,13 +61,13 @@ def merge_track_metadata(
 def parse_youtube_credits(desc: str) -> Dict[str, str]:
     """
     Parse YouTube video description to extract credits.
-    
+
     YouTube videos often include credits in the description.
     This extracts them into a structured dict.
-    
+
     Args:
         desc: YouTube video description
-        
+
     Returns:
         Dict of credit field → value
     """
@@ -108,11 +108,11 @@ def parse_youtube_credits(desc: str) -> Dict[str, str]:
 def pick_best_lyrics(genius_data: Optional[Dict], auto_lyrics: Optional[str]) -> tuple[Optional[str], Optional[str]]:
     """
     Pick the best lyrics source (Genius > Auto-fetched > None).
-    
+
     Args:
         genius_data: From Genius API (may contain lyrics)
         auto_lyrics: From auto-fetch APIs
-        
+
     Returns:
         (lyrics_text, source_name) tuple
     """
