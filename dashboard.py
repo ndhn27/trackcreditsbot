@@ -15,7 +15,9 @@ Pages:
   GET  /admin/metrics       — All-time counters + top credit users
   POST /admin/gift          — Gift credits to a user
   GET  /admin/login         — Login page (public)
-  POST /admin/login         — Process login (public)
+  POST /admin/login         — Process login (public, rate-limited — see
+                               dashboard_auth: 5 failed attempts / 5 min
+                               triggers a 15 min lockout per client IP)
   GET  /admin/logout        — Clear session cookie
 """
 from __future__ import annotations
@@ -33,7 +35,10 @@ from dashboard_auth import (
     check_auth,
     make_login_response,
     make_logout_response,
-    LOGIN_PAGE_HTML,
+    client_ip,
+    is_login_locked,
+    record_login_attempt,
+    render_login_page,
 )
 
 logger = logging.getLogger("trackcredits.dashboard")
@@ -215,28 +220,42 @@ def _fmt_ts(ts) -> str:
 async def handle_login_get(request: web.Request) -> web.Response:
     return web.Response(
         content_type="text/html",
-        text=LOGIN_PAGE_HTML.format(error=""),
+        text=render_login_page(),
     )
 
 
 async def handle_login_post(request: web.Request) -> web.Response:
+    ip = client_ip(request)
+    locked_for = is_login_locked(ip)
+    if locked_for:
+        mins = locked_for // 60 + 1
+        return web.Response(
+            status=429,
+            content_type="text/html",
+            headers={"Retry-After": str(locked_for)},
+            text=render_login_page(
+                f'<div class="error">Too many attempts. Try again in {mins} min.</div>'
+            ),
+        )
+
     data = await request.post()
     secret = data.get("secret", "")
     if not DASHBOARD_SECRET:
         return web.Response(
             content_type="text/html",
-            text=LOGIN_PAGE_HTML.format(
-                error='<div class="error">DASHBOARD_SECRET is not configured on the server.</div>'
+            text=render_login_page(
+                '<div class="error">DASHBOARD_SECRET is not configured on the server.</div>'
             ),
         )
     import hmac as _hmac
     if _hmac.compare_digest(secret, DASHBOARD_SECRET):
+        record_login_attempt(ip, success=True)
         return make_login_response("/admin/")
+
+    record_login_attempt(ip, success=False)
     return web.Response(
         content_type="text/html",
-        text=LOGIN_PAGE_HTML.format(
-            error='<div class="error">Invalid secret key.</div>'
-        ),
+        text=render_login_page('<div class="error">Invalid secret key.</div>'),
     )
 
 

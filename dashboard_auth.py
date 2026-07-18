@@ -91,6 +91,107 @@ def make_logout_response() -> web.Response:
     return resp
 
 
+# ── Login rate limiting ────────────────────────────────────────────────────
+# In-memory, per-process. Resets on restart and does NOT share state across
+# multiple replicas — fine for this project's deploy (docker-compose /
+# railway.toml both run a single instance). If you ever scale to >1
+# replica, move the counters into Postgres or Redis instead.
+
+_LOGIN_MAX_ATTEMPTS = int(os.environ.get("DASHBOARD_LOGIN_MAX_ATTEMPTS", "5"))
+_LOGIN_WINDOW_SECONDS = int(os.environ.get("DASHBOARD_LOGIN_WINDOW_SECONDS", "300"))    # 5 min
+_LOGIN_LOCKOUT_SECONDS = int(os.environ.get("DASHBOARD_LOGIN_LOCKOUT_SECONDS", "900"))  # 15 min
+_LOGIN_MAX_TRACKED_IPS = 5_000  # opportunistic cleanup trigger
+
+_login_attempts: dict[str, list[float]] = {}     # ip -> failed-attempt timestamps
+_login_locked_until: dict[str, float] = {}       # ip -> unix ts lockout ends
+
+
+_TRUST_PROXY_HEADERS = os.environ.get("DASHBOARD_TRUST_PROXY_HEADERS", "").lower() == "true"
+
+
+def client_ip(request: web.Request) -> str:
+    """
+    Best-effort client IP for the login rate limiter.
+
+    Defaults to request.remote — the direct TCP peer aiohttp sees.
+    Always accurate, never spoofable, but if this process sits behind
+    ANY reverse proxy / PaaS edge (Railway, Fly, nginx, Cloudflare...),
+    request.remote is the *proxy's* IP for every request — the limiter
+    would then treat all visitors as one IP and could lock everyone out
+    together instead of isolating the attacker.
+
+    Set DASHBOARD_TRUST_PROXY_HEADERS=true to instead trust X-Real-IP,
+    or the last hop of X-Forwarded-For (the entry your own proxy
+    appended — not anything a client could have prepended), IF you have
+    exactly one reverse proxy you control in front and it's configured
+    to set these correctly (e.g. nginx: `proxy_set_header X-Real-IP
+    $remote_addr;`).
+
+    Do NOT enable this blindly on Railway: their community/support
+    threads currently disagree on whether the first or last
+    X-Forwarded-For hop is trustworthy, and behavior has reportedly
+    changed as they roll out new edge/CDN infrastructure. Verify
+    empirically for your own deployment first (hit an endpoint that
+    echoes request.remote + all headers from a known IP) — don't just
+    assume. Wrong here means an attacker can pick whatever IP they want
+    and the limiter never triggers.
+    """
+    if _TRUST_PROXY_HEADERS:
+        real_ip = request.headers.get("X-Real-IP", "").strip()
+        if real_ip:
+            return real_ip
+        xff = request.headers.get("X-Forwarded-For", "")
+        if xff:
+            return xff.split(",")[-1].strip()
+    return request.remote or "unknown"
+
+
+def _cleanup_stale(now: float) -> None:
+    """Drop IPs with no recent attempts and no active lockout."""
+    for ip in list(_login_attempts):
+        if not _login_attempts[ip] or now - _login_attempts[ip][-1] > _LOGIN_WINDOW_SECONDS:
+            _login_attempts.pop(ip, None)
+    for ip in list(_login_locked_until):
+        if _login_locked_until[ip] <= now:
+            _login_locked_until.pop(ip, None)
+
+
+def is_login_locked(ip: str) -> int:
+    """Return remaining lockout seconds for ip (0 if not locked)."""
+    until = _login_locked_until.get(ip)
+    if until is None:
+        return 0
+    remaining = int(until - time.time())
+    if remaining <= 0:
+        _login_locked_until.pop(ip, None)
+        return 0
+    return remaining
+
+
+def record_login_attempt(ip: str, success: bool) -> None:
+    """Record a login attempt; lock the IP out after too many failures in a row."""
+    now = time.time()
+    if len(_login_attempts) > _LOGIN_MAX_TRACKED_IPS:
+        _cleanup_stale(now)
+
+    if success:
+        _login_attempts.pop(ip, None)
+        _login_locked_until.pop(ip, None)
+        return
+
+    attempts = [t for t in _login_attempts.get(ip, []) if now - t < _LOGIN_WINDOW_SECONDS]
+    attempts.append(now)
+    _login_attempts[ip] = attempts
+
+    if len(attempts) >= _LOGIN_MAX_ATTEMPTS:
+        _login_locked_until[ip] = now + _LOGIN_LOCKOUT_SECONDS
+        _login_attempts.pop(ip, None)
+        logger.warning(
+            "Dashboard login: %s locked out for %ds after %d failed attempts.",
+            ip, _LOGIN_LOCKOUT_SECONDS, _LOGIN_MAX_ATTEMPTS,
+        )
+
+
 # ── Login page HTML ───────────────────────────────────────────────────────
 
 LOGIN_PAGE_HTML = """<!DOCTYPE html>
@@ -142,3 +243,20 @@ LOGIN_PAGE_HTML = """<!DOCTYPE html>
 </div>
 </body>
 </html>"""
+
+
+def render_login_page(error: str = "") -> str:
+    """
+    Render the login page with an optional error message.
+
+    Uses str.replace(), NOT str.format() — the CSS above is full of
+    literal `{...}` blocks (`{ box-sizing: ... }`, `:root { ... }`, etc.)
+    which collide with str.format()'s placeholder syntax. Calling
+    LOGIN_PAGE_HTML.format(error=...) raises KeyError on the first CSS
+    rule it hits, e.g. KeyError(' box-sizing'), before ever reaching the
+    real `{error}` placeholder. In practice this meant GET/POST
+    /admin/login 500'd unconditionally — the login page could not be
+    rendered at all. Pre-existing bug, unrelated to the rate limiter
+    above; fixed here since every caller goes through this function now.
+    """
+    return LOGIN_PAGE_HTML.replace("{error}", error)

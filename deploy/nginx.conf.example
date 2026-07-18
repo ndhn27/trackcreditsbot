@@ -1,0 +1,84 @@
+# Reverse-proxy hardening for the /admin/* dashboard.
+#
+# WHY THIS EXISTS
+# health.py runs /health, /ready, /payment/momo/ipn, /webhook/stripe AND
+# /admin/* all on the SAME port (see health.py's start_health_server()).
+# That means you can't just firewall the port — MoMo and Stripe need to
+# reach /payment/momo/ipn and /webhook/stripe from the internet, and your
+# platform's health checks need /health + /ready. Only /admin/* should be
+# locked down. That has to happen at the PATH level, which is what this
+# reverse proxy does. Drop this in front of the app (nginx -> app on
+# whatever internal port HEALTH_PORT is bound to) rather than exposing
+# the app port directly.
+#
+# This complements — does not replace — the in-app rate limiter already
+# in dashboard_auth.py (5 failed attempts / 5 min -> 15 min lockout per
+# client IP). That one works regardless of what's in front of it; this
+# adds a second layer and, optionally, a hard IP allowlist.
+#
+# RAILWAY NOTE: Railway does not let you drop your own nginx in front of
+# a single service without extra plumbing (a second service + private
+# networking, or moving off Railway). If you're on Railway and want this
+# without restructuring the deploy, put Cloudflare in front (orange-cloud
+# proxy mode) and add a WAF/rate-limit rule matching path /admin/login
+# instead — same idea, different tool. Either way, verify empirically
+# which client-IP header to trust for your actual routing path before
+# relying on it (see the client_ip() docstring in dashboard_auth.py —
+# Railway's own community threads disagree on this, and it's reportedly
+# in flux as they roll out new edge/CDN infrastructure).
+
+limit_req_zone $binary_remote_addr zone=admin_login:10m rate=5r/m;
+
+upstream trackcreditsbot {
+    # HEALTH_PORT from your .env — this is the container's internal port,
+    # not something you expose directly to the internet.
+    server 127.0.0.1:8080;
+}
+
+server {
+    listen 443 ssl;
+    server_name yourbot.example.com;
+
+    # ssl_certificate     /path/to/fullchain.pem;
+    # ssl_certificate_key /path/to/privkey.pem;
+
+    # ── Must stay open: MoMo/Stripe call these from the internet ─────────
+    location /payment/momo/ipn {
+        proxy_pass http://trackcreditsbot;
+        proxy_set_header Host $host;
+    }
+
+    location /webhook/stripe {
+        proxy_pass http://trackcreditsbot;
+        proxy_set_header Host $host;
+    }
+
+    location = /health  { proxy_pass http://trackcreditsbot; }
+    location = /ready   { proxy_pass http://trackcreditsbot; }
+
+    # ── Locked-down admin dashboard ───────────────────────────────────────
+    location /admin/login {
+        limit_req zone=admin_login burst=3 nodelay;
+        limit_req_status 429;
+
+        proxy_pass http://trackcreditsbot;
+        proxy_set_header Host $host;
+        # Real client IP for dashboard_auth.client_ip() when
+        # DASHBOARD_TRUST_PROXY_HEADERS=true — nginx sets this itself,
+        # a client can't override it, so it's safe to trust here.
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /admin/ {
+        # Optional hard lockdown: uncomment to allow only specific IPs
+        # (your home/office/VPN egress) and 403 everyone else, on top of
+        # needing the dashboard secret. Leave commented to rely on the
+        # secret + rate limit alone.
+        # allow 203.0.113.10;   # replace with your real IP(s)
+        # deny  all;
+
+        proxy_pass http://trackcreditsbot;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}

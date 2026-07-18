@@ -1,11 +1,11 @@
-# 🎵 TrackCredits Bot — v1.2.3
+# 🎵 TrackCredits Bot — v1.2.4
 
 > A Telegram bot that looks up song credits, lyrics, and streaming links — just send a track name or paste a Spotify / YouTube / Apple Music link.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
 [![python-telegram-bot](https://img.shields.io/badge/python--telegram--bot-22.7-blue)](https://github.com/python-telegram-bot/python-telegram-bot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-asyncpg-336791?logo=postgresql)](https://github.com/MagicStack/asyncpg)
-[![Version](https://img.shields.io/badge/version-1.2.3-green)](#)
+[![Version](https://img.shields.io/badge/version-1.2.4-green)](#)
 [![Coverage](https://img.shields.io/badge/coverage-30%25-orange)](#)
 [![License](https://img.shields.io/badge/License-MIT-green)](#license)
 [![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions)](/.github/workflows/ci.yml)
@@ -230,6 +230,12 @@ MIT — see [LICENSE](LICENSE).
 ---
 
 ## 📝 Changelog
+
+### v1.2.4
+- **Fix:** `/admin/login` (GET and POST) 500'd unconditionally — `LOGIN_PAGE_HTML.format(error=...)` collided with the page's own embedded CSS (`str.format()` treats every literal `{...}` in the stylesheet, e.g. `{ box-sizing: border-box; }`, as a placeholder). The login page could not render at all; nobody, including the admin, could reach the dashboard. Replaced with `render_login_page()`, which uses `str.replace()` instead.
+- **New:** Rate limiting on `/admin/login` — 5 failed attempts within 5 minutes locks the client IP out for 15 minutes (`429` + `Retry-After`), configurable via `DASHBOARD_LOGIN_MAX_ATTEMPTS` / `DASHBOARD_LOGIN_WINDOW_SECONDS` / `DASHBOARD_LOGIN_LOCKOUT_SECONDS`. In-memory, per-process — fine for a single instance; move to Postgres/Redis if this ever runs multiple replicas.
+- **New:** `client_ip()` defaults to `request.remote` (not spoofable). Opt in via `DASHBOARD_TRUST_PROXY_HEADERS=true` to trust `X-Real-IP` / the last hop of `X-Forwarded-For` instead — only if this runs behind a reverse proxy you control and you've verified which hop it actually sets.
+- **Docs:** Added `deploy/nginx.conf.example` — path-based rate limiting and an optional IP allowlist for `/admin/`, while leaving `/payment/momo/ipn`, `/webhook/stripe`, `/health`, and `/ready` open (they share `HEALTH_PORT` with the dashboard, per `health.py`).
 
 ### v1.2.3
 - **Fix:** Contribution flow (`callbacks/contrib.py`) was missing the "← Back" button on all three input-request screens (credits, lyrics, report) — users had to `/cancel` and start over if they changed their mind mid-flow. Also removed a leftover duplicate DB lookup.
