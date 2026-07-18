@@ -1,11 +1,12 @@
-# 🎵 TrackCredits Bot — v1.2.2
+# 🎵 TrackCredits Bot — v1.2.3
 
 > A Telegram bot that looks up song credits, lyrics, and streaming links — just send a track name or paste a Spotify / YouTube / Apple Music link.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
 [![python-telegram-bot](https://img.shields.io/badge/python--telegram--bot-22.7-blue)](https://github.com/python-telegram-bot/python-telegram-bot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-asyncpg-336791?logo=postgresql)](https://github.com/MagicStack/asyncpg)
-[![Version](https://img.shields.io/badge/version-1.2.2-green)](#)
+[![Version](https://img.shields.io/badge/version-1.2.3-green)](#)
+[![Coverage](https://img.shields.io/badge/coverage-30%25-orange)](#)
 [![License](https://img.shields.io/badge/License-MIT-green)](#license)
 [![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions)](/.github/workflows/ci.yml)
 
@@ -229,6 +230,15 @@ MIT — see [LICENSE](LICENSE).
 ---
 
 ## 📝 Changelog
+
+### v1.2.3
+- **Fix:** Contribution flow (`callbacks/contrib.py`) was missing the "← Back" button on all three input-request screens (credits, lyrics, report) — users had to `/cancel` and start over if they changed their mind mid-flow. Also removed a leftover duplicate DB lookup.
+- **Fix:** Dashboard "Uptime" stat was calculated (`uptime_h`) but never rendered — the metrics page never showed it. Added the missing stat card.
+- **Chore:** CI lint step now actually gates the pipeline — removed the `|| true` fallback that silently let lint errors through on every push.
+- **Chore:** Added `pytest-cov` and `.coveragerc` (excludes `tests/` from the coverage denominator) so CI reports real test coverage.
+- **Chore:** Added `dependabot.yml` — weekly automated PRs for pip, GitHub Actions, and the Docker base image.
+- **Chore:** Removed an unused variable and two duplicate imports from `handlers.py`.
+- **Docs:** Added coverage badge to README.
 
 ### v1.2.2
 - **Fix:** CI was failing on every push — 13 tests had drifted out of sync with the codebase (stale mock configuration, an admin-check refactor the tests weren't updated for, and translation strings that no longer matched `i18n.py`). No production code changed; fixes confined to `tests/`.

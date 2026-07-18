@@ -281,6 +281,7 @@ async def handle_overview(request: web.Request) -> web.Response:
 
     uptime_s = int(time.time()) - int(metrics.get("_start_time", time.time()))
     uptime_h = uptime_s // 3600
+    uptime_label = f"{uptime_h // 24}d {uptime_h % 24}h" if uptime_h >= 24 else f"{uptime_h}h"
 
     stats_html = f"""
 <div class="stat-grid">
@@ -307,6 +308,10 @@ async def handle_overview(request: web.Request) -> web.Response:
   <div class="stat-card">
     <div class="stat-label">Searches (all time)</div>
     <div class="stat-value">{searches_total:,}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Uptime</div>
+    <div class="stat-value">{uptime_label}</div>
   </div>
 </div>"""
 

@@ -45,13 +45,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Lint with ruff (non-blocking)
+      - name: Lint with ruff
         run: |
           pip install ruff --quiet
-          ruff check . --select E,F,W --ignore E501 || true
+          ruff check . --select E,F,W --ignore E501
 
       - name: Run tests
-        run: pytest tests/ -v --tb=short
+        run: pytest tests/ -v --tb=short --cov=. --cov-report=term-missing
 
   docker:
     runs-on: ubuntu-latest

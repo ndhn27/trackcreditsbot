@@ -8,7 +8,7 @@ import io
 import csv
 import re
 import time
-from config import ADMIN_CHAT_ID, ADMIN_CHAT_IDS, is_admin, logger
+from config import ADMIN_CHAT_IDS, is_admin, logger
 from i18n import t, t_lang
 from metrics import get_metrics, get_daily_stats
 from utils import escape_html, safe_url
@@ -40,8 +40,6 @@ from credits import (
     claim_daily_bonus,
     credit_history,
     SEARCH_COST,
-    DAILY_BONUS,
-    DAILY_BONUS_COOLDOWN,
     SUBMIT_EARN,
     APPROVAL_EARN,
 )
@@ -65,11 +63,9 @@ from repository import (
     bans_add,
     bans_remove,
     bans_is_banned,
-    bans_list,
     submissions_get_pending_page,
     submissions_count_by_status,
     stats_credit_totals,
-    stats_top_credit_users,
 )
 from services import build_main_text, get_kb, schedule_track_cache_refresh
 from track_manager import TrackManager, TrackResolution, TrackAmbiguous, TrackNotFound
@@ -183,7 +179,6 @@ async def _register_user(update: Update) -> None:
     user = update.effective_user
     if not user:
         return
-    from repository import bot_users_upsert
     await bot_users_upsert(user.id, user.username or "")
     await ensure_user_credits(user.id, user.username or "")
 
@@ -193,7 +188,6 @@ async def _check_banned(update: Update, context: ContextTypes.DEFAULT_TYPE) -> b
     user = update.effective_user
     if not user:
         return False
-    from repository import bans_is_banned
     if await bans_is_banned(user.id):
         if update.message:
             await update.message.reply_text("\U0001f6ab You have been banned from using this bot.")
@@ -541,8 +535,6 @@ async def cmd_daily(update: Update, context: ContextTypes.DEFAULT_TYPE):
     awarded, next_ts = await claim_daily_bonus(user.id)
 
     if awarded == 0:
-        import datetime
-        next_dt = datetime.datetime.fromtimestamp(next_ts, tz=datetime.timezone.utc)
         remaining = next_ts - int(time.time())
         h, m = divmod(remaining // 60, 60)
         await update.message.reply_text(
@@ -1028,7 +1020,7 @@ async def cmd_buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await _check_banned(update, context):
         return
 
-    from payment import CREDIT_PACKAGES, PROVIDER, create_payment
+    from payment import CREDIT_PACKAGES, PROVIDER
     from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
     user = update.effective_user
@@ -1058,7 +1050,7 @@ async def handle_buy_callback(update: Update, context, pack_id: str):
     if not query:
         return
 
-    from payment import create_payment, CREDIT_PACKAGES, get_package
+    from payment import create_payment, get_package
     from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
     pack = get_package(pack_id)

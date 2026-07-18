@@ -35,11 +35,6 @@ def register_contrib(registry: CallbackRegistry) -> None:
             await query.edit_message_text(t("session_expired", context))
             return
 
-        back_hash = await store_track_hash(track["key"])
-        back_keyboard = InlineKeyboardMarkup(
-            [[InlineKeyboardButton(t("btn_back", context), callback_data=f"m_main_{back_hash}")]]
-        )
-
         track_hash = await store_track_hash(track["key"])
         await query.edit_message_text(
             t("contrib_prompt", context),
@@ -81,7 +76,7 @@ def register_contrib(registry: CallbackRegistry) -> None:
         )
 
         context.user_data["state"] = "awaiting_credits"
-        await query.edit_message_text(t("req_credits", context))
+        await query.edit_message_text(t("req_credits", context), reply_markup=back_keyboard)
 
     @registry.register(CB.SUBMIT_LYRICS.value.rstrip("_"))
     async def handle_submit_lyrics(update: Update, context: ContextTypes.DEFAULT_TYPE, payload: str) -> None:
@@ -119,8 +114,11 @@ def register_contrib(registry: CallbackRegistry) -> None:
             return
 
         back_hash = await store_track_hash(track["key"])
+        back_keyboard = InlineKeyboardMarkup(
+            [[InlineKeyboardButton(t("btn_back", context), callback_data=f"m_main_{back_hash}")]]
+        )
         context.user_data["state"] = "awaiting_lyrics1"
-        await query.edit_message_text(t("req_lyrics1", context))
+        await query.edit_message_text(t("req_lyrics1", context), reply_markup=back_keyboard)
 
     @registry.register(CB.ACT_REPORT.value.rstrip("_"))
     async def handle_report(update: Update, context: ContextTypes.DEFAULT_TYPE, payload: str) -> None:
@@ -149,5 +147,5 @@ def register_contrib(registry: CallbackRegistry) -> None:
         )
 
         context.user_data["state"] = "awaiting_report"
-        await query.edit_message_text(t("req_report", context))
+        await query.edit_message_text(t("req_report", context), reply_markup=back_keyboard)
 
