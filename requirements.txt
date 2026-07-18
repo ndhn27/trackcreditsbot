@@ -33,6 +33,9 @@ python-dotenv==1.2.2
 # If you don't need lyrics, you can remove this line
 lyricsgenius==3.11.0
 
+# Stripe Checkout + webhook verification (only needed if PAYMENT_PROVIDER=stripe)
+stripe==15.3.1
+
 pydantic>=2.0.0
 
 # ── Testing ──────────────────────────────────────────────────────────────────
