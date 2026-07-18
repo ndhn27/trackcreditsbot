@@ -352,7 +352,8 @@ class TestHandleSubmitLyrics:
         registry = CallbackRegistry()
         register_contrib(registry)
 
-        ctx_vi.user_data["track"] = FAKE_TRACK
+        track_without_lyrics = {**FAKE_TRACK, "lyrics": None, "lyrics_source": None}
+        ctx_vi.user_data["track"] = track_without_lyrics
 
         with (
             patch("callbacks.contrib.get_track_key_from_hash", new=AsyncMock(return_value=FAKE_TRACK["key"])),
@@ -409,14 +410,14 @@ class TestHandleAdmin:
         from callback_registry import CallbackRegistry
 
         registry = CallbackRegistry()
-        with patch("callbacks.admin.ADMIN_CHAT_ID", ADMIN_ID):
-            register_admin(registry)
+        register_admin(registry)
 
         query = _make_query("admin_app_1")
         update = _make_update(query, user_id=12345)  # not admin
 
-        handler = registry._handlers.get("admin_app")
-        await handler(update, ctx_vi, "1")
+        with patch("config.ADMIN_CHAT_IDS", {ADMIN_ID}):
+            handler = registry._handlers.get("admin_app")
+            await handler(update, ctx_vi, "1")
 
         query.edit_message_text.assert_awaited_once()
         text = query.edit_message_text.call_args[0][0]
@@ -428,13 +429,15 @@ class TestHandleAdmin:
         from callback_registry import CallbackRegistry
 
         registry = CallbackRegistry()
-        with patch("callbacks.admin.ADMIN_CHAT_ID", ADMIN_ID):
-            register_admin(registry)
+        register_admin(registry)
 
         query = _make_query("admin_app_1")
         update = _make_update(query, user_id=ADMIN_ID)
 
-        with patch("handlers.admin_act", new=AsyncMock()) as mock_act:
+        with (
+            patch("config.ADMIN_CHAT_IDS", {ADMIN_ID}),
+            patch("handlers.admin_act", new=AsyncMock()) as mock_act,
+        ):
             handler = registry._handlers.get("admin_app")
             await handler(update, ctx_vi, "1")
             mock_act.assert_awaited_once()
@@ -449,14 +452,14 @@ class TestHandleAddPromo:
         from callback_registry import CallbackRegistry
 
         registry = CallbackRegistry()
-        with patch("callbacks.admin.ADMIN_CHAT_ID", ADMIN_ID):
-            register_admin(registry)
+        register_admin(registry)
 
         query = _make_query("add_promo_youtube")
         update = _make_update(query, user_id=555)
 
-        handler = registry._handlers.get("add_promo")
-        await handler(update, ctx_vi, "youtube")
+        with patch("config.ADMIN_CHAT_IDS", {ADMIN_ID}):
+            handler = registry._handlers.get("add_promo")
+            await handler(update, ctx_vi, "youtube")
 
         query.edit_message_text.assert_awaited_once()
 
@@ -466,14 +469,14 @@ class TestHandleAddPromo:
         from callback_registry import CallbackRegistry
 
         registry = CallbackRegistry()
-        with patch("callbacks.admin.ADMIN_CHAT_ID", ADMIN_ID):
-            register_admin(registry)
+        register_admin(registry)
 
         query = _make_query("add_promo_youtube")
         update = _make_update(query, user_id=ADMIN_ID)
 
-        handler = registry._handlers.get("add_promo")
-        await handler(update, ctx_vi, "youtube")
+        with patch("config.ADMIN_CHAT_IDS", {ADMIN_ID}):
+            handler = registry._handlers.get("add_promo")
+            await handler(update, ctx_vi, "youtube")
 
         assert ctx_vi.user_data.get("state") == "awaiting_promo_youtube"
 
@@ -487,14 +490,14 @@ class TestHandleClearPromo:
         from callback_registry import CallbackRegistry
 
         registry = CallbackRegistry()
-        with patch("callbacks.admin.ADMIN_CHAT_ID", ADMIN_ID):
-            register_admin(registry)
+        register_admin(registry)
 
         query = _make_query("clear_promo_")
         update = _make_update(query, user_id=555)
 
-        handler = registry._handlers.get("clear_promo")
-        await handler(update, ctx_vi, "")
+        with patch("config.ADMIN_CHAT_IDS", {ADMIN_ID}):
+            handler = registry._handlers.get("clear_promo")
+            await handler(update, ctx_vi, "")
 
         query.edit_message_text.assert_awaited_once()
 
@@ -504,12 +507,12 @@ class TestHandleClearPromo:
         from callback_registry import CallbackRegistry
 
         registry = CallbackRegistry()
-        with patch("callbacks.admin.ADMIN_CHAT_ID", ADMIN_ID):
-            register_admin(registry)
+        register_admin(registry)
 
         ctx_vi.user_data["track"] = FAKE_TRACK
 
         with (
+            patch("config.ADMIN_CHAT_IDS", {ADMIN_ID}),
             patch("callbacks.admin.db_execute", new=AsyncMock()) as mock_db,
             patch("callbacks.admin.promo_cache_invalidate", new=AsyncMock()) as mock_cache,
             patch("callbacks.admin.store_track_hash", new=AsyncMock(return_value="ph")),

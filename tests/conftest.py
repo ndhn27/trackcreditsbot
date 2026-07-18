@@ -79,4 +79,5 @@ def mock_api():
     api.fetch_musicbrainz_data = AsyncMock(return_value=None)
     api.get_odesli = AsyncMock(return_value=None)
     api.fetch_auto_lyrics = AsyncMock(return_value=None)
+    api.fetch_synced_lyrics = AsyncMock(return_value=(None, None))
     return api

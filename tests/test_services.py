@@ -74,7 +74,7 @@ class TestRenderCredits:
 
     def test_vi_no_data_message(self):
         text = render_credits(None, {}, None, "T", "A", lang="vi")
-        assert "Không có thông tin credits gốc" in text
+        assert "Không có credits gốc" in text
 
     def test_en_no_data_message(self):
         text = render_credits(None, {}, None, "T", "A", lang="en")
@@ -134,6 +134,6 @@ class TestRenderCredits:
         # The "The Weeknd - " prefix should be stripped from the Track: line
         assert "The Weeknd - Blinding Lights" not in text
 
-    def test_default_lang_is_vi(self):
+    def test_default_lang_is_en(self):
         text = render_credits(None, {}, None, "T", "A")
-        assert "Không có thông tin credits gốc" in text
+        assert "No original credits available" in text

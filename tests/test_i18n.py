@@ -11,7 +11,7 @@ class TestTLang:
         assert t_lang("analyzing", "en") == "Analyzing track data..."
 
     def test_falls_back_to_en_on_unknown_lang(self):
-        assert t_lang("analyzing", "fr") == "Analyzing track data..."
+        assert t_lang("analyzing", "xx") == "Analyzing track data..."
 
     def test_returns_bracket_placeholder_for_missing_key(self):
         result = t_lang("__nonexistent_key_xyz__", "en")
@@ -48,7 +48,7 @@ class TestTLang:
         fakes = dict(
             page=1, count=0, sub_type="credits", title="T", query="Q",
             promo_type="Instrumental", source="Genius", contributor="user",
-            artist="Artist",
+            artist="Artist", balance=100, credits=10,
         )
         for key, val in LANG_DICT["en"].items():
             try:
