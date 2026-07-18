@@ -1,11 +1,11 @@
-# 🎵 TrackCredits Bot — v1.2.0
+# 🎵 TrackCredits Bot — v1.2.2
 
 > A Telegram bot that looks up song credits, lyrics, and streaming links — just send a track name or paste a Spotify / YouTube / Apple Music link.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
 [![python-telegram-bot](https://img.shields.io/badge/python--telegram--bot-22.7-blue)](https://github.com/python-telegram-bot/python-telegram-bot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-asyncpg-336791?logo=postgresql)](https://github.com/MagicStack/asyncpg)
-[![Version](https://img.shields.io/badge/version-1.2.1-green)](#)
+[![Version](https://img.shields.io/badge/version-1.2.2-green)](#)
 [![License](https://img.shields.io/badge/License-MIT-green)](#license)
 [![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions)](/.github/workflows/ci.yml)
 
@@ -229,6 +229,10 @@ MIT — see [LICENSE](LICENSE).
 ---
 
 ## 📝 Changelog
+
+### v1.2.2
+- **Fix:** CI was failing on every push — 13 tests had drifted out of sync with the codebase (stale mock configuration, an admin-check refactor the tests weren't updated for, and translation strings that no longer matched `i18n.py`). No production code changed; fixes confined to `tests/`.
+- **Fix:** `payment.py` imports the `stripe` package when `PAYMENT_PROVIDER=stripe`, but it was missing from `requirements.txt` — a fresh deploy with Stripe enabled would crash with `ModuleNotFoundError` on first checkout. Added `stripe==15.3.1`.
 
 ### v1.2.1
 - **Fix:** `fulfill_payment()` could double-credit a purchase on MoMo IPN / Stripe webhook retry or replay — the `payment_orders` table (added in v1.2.0's migration `007`) was never actually queried before crediting. Now claims the `order_id` via `INSERT ... ON CONFLICT (order_id) DO NOTHING` before calling `add_credits`, so a given order is fulfilled exactly once regardless of how many times the webhook fires.
