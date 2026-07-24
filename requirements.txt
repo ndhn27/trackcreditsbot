@@ -1,0 +1,44 @@
+# ============================================================
+# TrackCredits Bot — Pinned Dependencies
+# Generated: 2026-04-08
+# Python: 3.10+
+#
+# To upgrade safely:
+#   pip install pip-tools
+#   pip-compile requirements.in   (if you maintain a .in file)
+# Or manually bump versions and re-test before deploying.
+#
+# yt-dlp updates VERY frequently (weekly). If YouTube stops
+# working, upgrade it first: pip install -U yt-dlp
+# ============================================================
+
+# Telegram Bot framework
+python-telegram-bot==22.7
+
+# HTTP requests (Genius, Odesli, MusicBrainz, scraping)
+requests==2.33.1
+aiohttp==3.14.1
+
+# YouTube metadata extraction
+# Note: YouTube changes its API often — upgrade this if YT stops working
+yt-dlp==2026.7.4
+
+# PostgreSQL driver (native async)
+asyncpg==0.30.0
+
+# Environment variable loader
+python-dotenv==1.2.2
+
+# Genius lyrics scraper (optional — bot works without it)
+# If you don't need lyrics, you can remove this line
+lyricsgenius==3.11.0
+
+# Stripe Checkout + webhook verification (only needed if PAYMENT_PROVIDER=stripe)
+stripe==15.3.1
+
+pydantic>=2.13.4
+
+# ── Testing ──────────────────────────────────────────────────────────────────
+pytest==9.1.1
+pytest-asyncio==1.3.0
+pytest-cov==6.0.0

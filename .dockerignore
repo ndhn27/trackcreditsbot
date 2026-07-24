@@ -1,0 +1,33 @@
+# Secrets — never bake into the image
+.env
+.env.*
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Development / build artifacts
+.git/
+.gitignore
+dist/
+build/
+*.log
+venv/
+.venv/
+.Python
+
+# Tests and coverage (not needed in the image)
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docs
+*.md
+LICENSE
+
+# Windows batch runner
+run.bat
