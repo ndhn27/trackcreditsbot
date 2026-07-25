@@ -31,7 +31,7 @@ python-dotenv==1.2.2
 
 # Genius lyrics scraper (optional — bot works without it)
 # If you don't need lyrics, you can remove this line
-lyricsgenius==3.11.0
+lyricsgenius==3.12.2
 
 # Stripe Checkout + webhook verification (only needed if PAYMENT_PROVIDER=stripe)
 stripe==15.3.1
