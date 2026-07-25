@@ -1,5 +1,5 @@
 # ── Stage 1: build wheels ────────────────────────────────────────────────────
-FROM python:3.11-slim AS builder
+FROM python:3.14-slim AS builder
 
 WORKDIR /build
 
@@ -13,7 +13,7 @@ RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 
